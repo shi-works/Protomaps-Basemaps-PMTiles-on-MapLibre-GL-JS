@@ -26,17 +26,20 @@
         let protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles", protocol.tile);
 
+        let URL = "https://r2-public.protomaps.com/protomaps-sample-datasets/terrarium_z9.pmtiles";
+
         // マップの初期化
         const map = new maplibregl.Map({
             container: 'map',
             style: './style-light.json',
             // style: 'https://tile2.openstreetmap.jp/styles/osm-bright-ja/style.json',
-            zoom: 15.33,
+            zoom: 11.31,
             minZoom: 1,
             maxZoom: 23,
-            pitch: 0,
+            pitch: 73,
+            maxPitch: 85,
             bearing: 0,
-            center: [139.694945, 35.690049],
+            center: [138.7275, 35.3185],
             hash: true,
             attributionControl: false
         });
@@ -68,6 +71,46 @@
             compact: true,
             customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="https://github.com/shi-works/Protomaps-Basemaps-PMTiles-on-MapLibre-GL-JS" target="_blank">Github</a>） '
         }));
+
+        map.on('load', () => {
+            // 標高タイルソース
+            map.addSource("tilezen-dem", {
+                type: 'raster-dem',
+                url: "pmtiles://" + URL,
+                attribution: '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md">Tilezen Joerd: Attribution</a>',
+                "encoding": "terrarium"
+            });
+
+            // 標高タイルセット
+            map.setTerrain({ 'source': 'tilezen-dem', 'exaggeration': 1 });
+
+            // 陰影起伏図レイヤ
+            map.addLayer({
+                "id": "hillshade",
+                "type": "hillshade",
+                "source": "tilezen-dem",
+                "minzoom": 1,
+                "maxzoom": 18,
+                "layout": {},
+                "paint": {
+                    "hillshade-accent-color": "#5a5a5a",
+                    "hillshade-exaggeration": 0.5,
+                    "hillshade-highlight-color": "#FFFFFF",
+                    "hillshade-illumination-anchor": "viewport",
+                    "hillshade-illumination-direction": 335,
+                    "hillshade-shadow-color": "#5a5a5a"
+                }
+            });
+
+            // 3D地形コントロール
+            map.addControl(
+                new maplibregl.TerrainControl({
+                    source: 'tilezen-dem',
+                    exaggeration: 1 // 標高を強調する倍率
+                })
+            );
+
+        });
 
     </script>
 </body>
